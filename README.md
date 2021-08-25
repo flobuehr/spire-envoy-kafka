@@ -11,7 +11,7 @@ to enable X.509 SVID-based mutual authentication and encryption (mTLS) between t
 * 1x 3-node K8s cluster (parta.org)
 * 1x 1-node K8s cluster (partb.org)
 * Command line connection (including kubeconfig file) to both clusters
-* Federated SPIRE setup (link to repo missing!)
+* Federated SPIRE setup (https://github.com/flobuehr/spire-federation)
 
 ### Participant A deployment (parta.org)
 Pull the repository, connect to K8s cluster of Participant-A and execute the following command to deploy the single domain Kafka demo
