@@ -1,0 +1,46 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: data-producer
+  labels:
+    app: publisher
+spec:
+  selector:
+    matchLabels:
+      app: publisher
+  template:
+    metadata:
+      labels:
+        app: publisher
+    spec:
+      initContainers:
+      - command: ['sh','-c','sleep 15; exit 0']
+        image: docker.io/busybox:stable-glibc
+        name: wait-15-sec-producer
+      containers:
+      - name: data-producer
+        image: docker.io/jayasheel/producer:v3
+        env:
+        - name: KAFKA_BROKER
+          value: "localhost:19092"
+        command: ["/bin/sh"]
+        args: ["-c", "trap : TERM INT; sleep infinity & wait"]
+      - name: envoy
+        image: docker.io/envoyproxy/envoy-alpine:v1.14.4
+        args:
+        - "-c"
+        - "/envoy-config/envoy.yaml"
+        volumeMounts:
+        - name: envoy-config
+          mountPath: /envoy-config
+        - name: spire-agent-socket
+          mountPath: /run/spire/sockets
+          readOnly: true               
+      volumes:
+      - name: envoy-config
+        configMap:
+          name: producer-envoy-config
+      - name: spire-agent-socket
+        hostPath:
+          path: /run/spire/sockets
+          type: DirectoryOrCreate

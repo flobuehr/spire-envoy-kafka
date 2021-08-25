@@ -1,0 +1,101 @@
+<html>
+
+    <head>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+        <title>Data source</title>
+    </head>
+    
+    <body>
+        <div class="page-hero d-flex align-items-center justify-content-center">
+          <h1> <b>Data producer</b></h1>
+        </div>
+    <p/><p/>
+    <br/>
+
+    <div class="jumbotron">
+
+        <form action="" method="post" role="form">
+            {{ form.csrf }}
+            <div class="form-group row justify-content-center">
+                <div class="col-sm-8">
+
+                    <div style="display:flex; flex-direction: row; justify-content: center; align-items: center" >
+                        Data source:&nbsp;&nbsp;<a href="https://openweathermap.org/">Openweather</a>&nbsp;&nbsp;
+                        <a href="https://openweathermap.org/api">API</a>&nbsp;&nbsp;
+                        <a href="https://openweathermap.org/current/">Message details</a>
+                    </div>
+
+
+                   <div class="form-group row justify-content-center">&nbsp;</div>
+
+                   <div style="display:flex; flex-direction: row; justify-content: center; align-items: center" >
+                        <label for="topic_id">{{ form.topic.label }}&nbsp;&nbsp;</label>
+                        <input type="text" class="form-control" id="topic_id" name="topic" placeholder="Enter Kafka topic" aria-describedby="caseHelp" style="max-width: 50%">
+                    </div>
+
+                    <div style="display:flex; flex-direction: row; justify-content: center; align-items: center" >
+                        <div class="m-4 d-inline-block">
+                            <label for="batch_size_id">{{ form.batch_size.label }}</label>
+                            <select name="batch_size" id="batch_size_id">
+                                {% for each in form.batch_size %}
+                                    <a class="dropdown-item" href="#" >{{each}}</a>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="m-4 d-inline-block">
+                            <label for="time_int_id">{{ form.time_int.label }}</label>
+                            <select name="time_int" id="time_int_id">
+                                {% for each in form.time_int %}
+                                    <a class="dropdown-item" href="#" >{{each}}</a>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group row justify-content-center">
+                <button type="submit" class="btn btn-success">Publish messages</button>
+            </div>
+
+        </form>
+    </div>
+    <br/><br/>
+
+    <div class="container">        
+        <table class="table table-hover">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+
+            {% for category, message in messages %}
+
+              {% if category == 'title' %}
+                <p><b>{{ message }}</b></p>
+              {% endif %}    
+
+              {% if category == 'key' %}
+                <tr>
+                <td><b>{{ message }}</b></td>
+              {% endif %}    
+
+              {% if category == 'value' %}
+                <td>{{ message }}</td></tr>
+              {% endif %}    
+
+              {% if category == 'error' %}
+                <tr><td>{{ message }}</td></tr>
+              {% endif %}
+
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        </table>
+    </div>
+    </div>
+
+     </body>
+</html>

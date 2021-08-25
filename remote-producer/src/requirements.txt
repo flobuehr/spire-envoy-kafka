@@ -1,0 +1,5 @@
+requests
+kafka-python
+Flask         
+Flask-RESTful 
+WTForms 

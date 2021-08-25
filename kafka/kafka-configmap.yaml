@@ -1,0 +1,17 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: kafka-scripts
+  labels:
+    app.kubernetes.io/instance: kafka
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kafka
+    helm.sh/chart: kafka-11.8.1
+  annotations:
+    meta.helm.sh/release-name: kafka
+    meta.helm.sh/release-namespace: default
+data:
+  setup.sh: |-
+    #!/bin/bash
+
+    exec /entrypoint.sh /run.sh

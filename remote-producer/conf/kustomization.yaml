@@ -1,0 +1,4 @@
+resources:
+  - envoy-config-map.yaml
+  - producer-deployment.yaml
+#  - producer-service.yaml

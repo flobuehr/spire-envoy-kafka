@@ -1,0 +1,4 @@
+resources:
+  - kafka
+  - data-producer/conf
+  - data-consumer/conf

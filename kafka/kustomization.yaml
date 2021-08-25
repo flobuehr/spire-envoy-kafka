@@ -1,0 +1,7 @@
+resources:
+  - envoy-configmap.yaml
+  - kafka-configmap.yaml
+  - zookeeper-statefulset.yaml
+  - zookeeper-service.yaml
+  - kafka-statefulset.yaml
+  - kafka-service.yaml

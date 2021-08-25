@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: publisher
+spec:
+  ports:
+   - port: 19092
+     name: secure
+     protocol: TCP
+     targetPort: 19092
+   - port: 19093
+     name: plain
+     protocol: TCP
+     targetPort: 19093
+   - port: 5005
+     name: restapi
+     protocol: TCP
+     targetPort: 5000
+  selector:
+      app: publisher
+  type: LoadBalancer
+

@@ -1,0 +1,4 @@
+resources:
+  - envoy-config-map.yaml
+  - consumer-deployment.yaml
+#  - consumer-service.yaml

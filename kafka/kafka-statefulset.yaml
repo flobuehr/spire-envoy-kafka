@@ -1,0 +1,182 @@
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: kafka
+  namespace: default
+  selfLink: /apis/apps/v1/namespaces/default/statefulsets/kafka
+  labels:
+    app.kubernetes.io/component: kafka
+    app.kubernetes.io/instance: kafka
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kafka
+    helm.sh/chart: kafka-11.8.1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: kafka
+      app.kubernetes.io/instance: kafka
+      app.kubernetes.io/name: kafka
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/component: kafka
+        app.kubernetes.io/instance: kafka
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: kafka-11.8.1
+    spec:
+      volumes:
+        - name: envoy-config
+          configMap:
+            name: configmap-envoy
+            defaultMode: 420
+        - name: spire-agent-socket
+          hostPath:
+            path: /run/spire/sockets
+            type: Directory
+        - name: scripts
+          configMap:
+            name: kafka-scripts
+            defaultMode: 493
+        - name: data
+          emptyDir: {}
+      initContainers:
+        - command: ['sh','-c','sleep 5; exit 0']
+          image: docker.io/busybox:stable-glibc
+          name: wait-5-sec
+      containers:
+        - name: envoy
+          image: 'docker.io/envoyproxy/envoy-alpine:v1.14.4'
+          args:
+            - '-l'
+            - debug
+            - '--local-address-ip-version'
+            - v4
+            - '-c'
+            - /run/envoy/envoy.yaml
+          ports:
+            - containerPort: 9001
+              protocol: TCP
+            - containerPort: 9002
+              protocol: TCP
+            - containerPort: 9003
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - name: envoy-config
+              readOnly: true
+              mountPath: /run/envoy
+            - mountPath: /run/spire/sockets
+              name: spire-agent-socket
+              readOnly: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+        - name: kafka
+          image: 'docker.io/bitnami/kafka:2.8.0'
+          command:
+            - /scripts/setup.sh
+          ports:
+            - name: kafka-client
+              containerPort: 9092
+              protocol: TCP
+            - name: kafka-internal
+              containerPort: 9093
+              protocol: TCP
+          env:
+            - name: BITNAMI_DEBUG
+              value: 'false'
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: KAFKA_CFG_ZOOKEEPER_CONNECT
+              value: zookeeper.default.svc.cluster.local
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: INTERNAL
+            - name: KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP
+              value: 'INTERNAL:PLAINTEXT,CLIENT:PLAINTEXT,ENVOY:PLAINTEXT'
+            - name: KAFKA_CFG_LISTENERS
+              value: 'INTERNAL://:9093,CLIENT://:9092'
+
+            # This variable in used in kafka-scripts ConfigMap to build advertised listeners config. Configure value with your Kafka LB external IP 
+            - name: KAFKA_EXTERNAL_IP
+              value: '$(MY_POD_IP)'
+            - name: KAFKA_CFG_ADVERTISED_LISTENERS
+              value: >-
+                INTERNAL://$(MY_POD_NAME).kafka-headless.default.svc.cluster.local:9093,CLIENT://$(MY_POD_NAME).kafka-headless.default.svc.cluster.local:9092
+            - name: ALLOW_PLAINTEXT_LISTENER
+              value: 'yes'
+            - name: KAFKA_CFG_DELETE_TOPIC_ENABLE
+              value: 'true'
+            - name: KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE
+              value: 'true'
+            - name: KAFKA_HEAP_OPTS
+              value: '-Xmx1024m -Xms1024m'
+            - name: KAFKA_CFG_LOG_FLUSH_INTERVAL_MESSAGES
+              value: '10000'
+            - name: KAFKA_CFG_LOG_FLUSH_INTERVAL_MS
+              value: '1000'
+            - name: KAFKA_CFG_LOG_RETENTION_BYTES
+              value: '1073741824'
+            - name: KAFKA_CFG_LOG_RETENTION_CHECK_INTERVALS_MS
+              value: '300000'
+            - name: KAFKA_CFG_LOG_RETENTION_HOURS
+              value: '168'
+            - name: KAFKA_CFG_MESSAGE_MAX_BYTES
+              value: '1000012'
+            - name: KAFKA_CFG_LOG_SEGMENT_BYTES
+              value: '1073741824'
+            - name: KAFKA_CFG_LOG_DIRS
+              value: /bitnami/kafka/data
+            - name: KAFKA_CFG_DEFAULT_REPLICATION_FACTOR
+              value: '1'
+            - name: KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: '1'
+            - name: KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+              value: '1'
+            - name: KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR
+              value: '1'
+            - name: KAFKA_CFG_NUM_IO_THREADS
+              value: '8'
+            - name: KAFKA_CFG_NUM_NETWORK_THREADS
+              value: '3'
+            - name: KAFKA_CFG_NUM_PARTITIONS
+              value: '1'
+            - name: KAFKA_CFG_NUM_RECOVERY_THREADS_PER_DATA_DIR
+              value: '1'
+            - name: KAFKA_CFG_SOCKET_RECEIVE_BUFFER_BYTES
+              value: '102400'
+            - name: KAFKA_CFG_SOCKET_REQUEST_MAX_BYTES
+              value: '104857600'
+            - name: KAFKA_CFG_SOCKET_SEND_BUFFER_BYTES
+              value: '102400'
+            - name: KAFKA_CFG_ZOOKEEPER_CONNECTION_TIMEOUT_MS
+              value: '6000'
+          resources: {}
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/kafka
+            - name: scripts
+              mountPath: /scripts/setup.sh
+              subPath: setup.sh
+#  volumeClaimTemplates:
+#    - metadata:
+#        name: data
+#        creationTimestamp: null
+#      spec:
+#        accessModes:
+#          - ReadWriteOnce
+#        resources:
+#          requests:
+#            storage: 1Gi
+#        volumeMode: Filesystem
+  serviceName: kafka-headless
