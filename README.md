@@ -67,6 +67,9 @@ For Participant-A, replace all occurrences of parta.org with the trust domain of
 
 The create-registration-entries.sh scripts must be executed with the corresponding trust domains as command line parameters.
 
+## Kafka integration beyond the demo
+Mutual authentication and encryption between Envoy proxies is a first step of secure data exchange. https://github.com/traiana/kafka-spiffe-principal provides a custom `KafkaPrincipalBuilder` implementation to handle the SPIFFE ID and its notation from the X.509 SVID.
+
 # Contributors to this demo
 * Christian Temporale, HPE
 * Jayasheel Harugop, HPE
